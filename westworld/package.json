@@ -1,0 +1,36 @@
+{
+  "name": "ts-westworld",
+  "version": "1.0.0",
+  "description": "An interface reflection library for native TypeScript builds",
+  "main": "dist/WestWorld.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "build.bat"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xSlither/ts-WestWorld.git"
+  },
+  "keywords": [
+    "typescript",
+    "interfaces",
+    "reflection",
+    "interfaceof",
+    "metadata"
+  ],
+  "author": "Chase M. Allen",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/xSlither/ts-WestWorld/issues"
+  },
+  "homepage": "https://github.com/xSlither/ts-WestWorld#readme",
+  "dependencies": {
+    "@types/reflect-metadata": "^0.1.0",
+    "linq": "^3.2.2"
+  },
+  "devDependencies": {
+    "@types/linq": "^2.2.33",
+    "@types/node": "^14.0.24",
+    "reflect-metadata": "^0.1.13"
+  }
+}
