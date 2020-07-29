@@ -9,4 +9,7 @@ COPY /Y "%~dp0\package.json" "%~dp0\build\package.json"
 echo "Copying LICENSE..."
 COPY /Y "%~dp0\..\LICENSE" "%~dp0\build\LICENSE"
 
+echo "Copying README..."
+COPY /Y "%~dp0\..\README.md" "%~dp0\build\README.md"
+
 echo "Package in BUILD directory is ready!"
