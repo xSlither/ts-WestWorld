@@ -29,8 +29,6 @@
     "linq": "^3.2.2"
   },
   "devDependencies": {
-    "@types/reflect-metadata": "^0.1.0",
-    "@types/linq": "^2.2.33",
     "@types/node": "^14.0.24",
     "reflect-metadata": "^0.1.13"
   }
