@@ -49,7 +49,6 @@ type FlattenIfArray<T> = T extends (infer R)[] ? R : T;
 // ++ ANCHOR Internal interface and type Declarations
 //---------------------------------------------------------------------------------------------------------------
 
-type toAutoImplementAny = [Symbol, {}][];
 type toAutoImplementGeneric<T extends {}> = [Symbol, T];
 type toAutoImplementPattern<T> = KeysMatchingIndexSignature<T, toAutoImplementGeneric<{}>>;
 
@@ -58,8 +57,6 @@ type toAutoImplementPartial<T> = toAutoImplementGeneric<KeysEnumPartial<T>>;
 
 type toAutoImplementKeys<T extends Object> = { interface: Symbol, keys: (keyof T)[]}
 type toAutoImplementKeysPattern<T> = KeysMatchingIndexSignature<T, toAutoImplementKeys<any>>;
-
-type toAutoImplementAnyPattern<T> = KeysMatchingIndexSignature<T, [Symbol, {} | string[]]>;
 
 
 type IndexablePatternKey<T> =
@@ -108,11 +105,8 @@ interface IStaticImplementsSymbol {
 }
 
 
-//type CheckSymbolLater = [Symbol, string];
-
 interface IImplementsofSymbol {
     __implementsof_symbol: Symbol[];
-    //__implementsof_toEval: CheckSymbolLater[];
 }
 
 //---------------------------------------------------------------------------------------------------------------

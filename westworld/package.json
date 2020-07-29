@@ -5,7 +5,8 @@
   "main": "dist/WestWorld.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "build.bat"
+    "build": "build.bat",
+    "build:npm": "npm run build && buildPackage.bat"
   },
   "repository": {
     "type": "git",
@@ -23,12 +24,12 @@
   "bugs": {
     "url": "https://github.com/xSlither/ts-WestWorld/issues"
   },
-  "homepage": "https://github.com/xSlither/ts-WestWorld#readme",
+  "homepage": "https://xslither.github.io/ts-WestWorld/",
   "dependencies": {
-    "@types/reflect-metadata": "^0.1.0",
     "linq": "^3.2.2"
   },
   "devDependencies": {
+    "@types/reflect-metadata": "^0.1.0",
     "@types/linq": "^2.2.33",
     "@types/node": "^14.0.24",
     "reflect-metadata": "^0.1.13"

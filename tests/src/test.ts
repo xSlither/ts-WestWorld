@@ -13,22 +13,19 @@ enum AttackStyle {
 }
 
 
-const IWarrior = Symbol.for('IWarrior');
 interface IWarrior {
     Style: AttackStyle;
     attack(): void;
     Someprop: boolean;
-}
+} const IWarrior = Symbol.for('IWarrior');
 
-const IShogun_Static = Symbol.for('IShogun_Static');
 interface IShogun_Static {
     TrainedUnder: string;
-}
+} const IShogun_Static = Symbol.for('IShogun_Static');
 
-const IShogun = Symbol.for('IShogun');
 interface IShogun {
     specialAttack(someArgument: boolean): void;
-}
+} const IShogun = Symbol.for('IShogun');
 //-------------------------------------------------------------------------------------------------------
 
 
@@ -45,9 +42,7 @@ const Interfaces = WestWorld.ImplementOfPatternFactory(
     ])
 )
 
-class StaticIndexable {}
-
-class Interfaces2 extends StaticIndexable {
+class Interfaces2 {
     public static IWarrior: WestWorld.toAutoImplementPartial<IWarrior> = [
         IWarrior, { Style: true, Someprop: true }];
 
@@ -57,10 +52,16 @@ class Interfaces2 extends StaticIndexable {
     public static NotAnInterface: string = '';
 }
 
+class Interfaces3 extends WestWorld.IndexableAutoImplementDefs {
+    public IWarrior: WestWorld.toAutoImplement<IWarrior> = [
+        IWarrior, { Style: true, attack: true, Someprop: true }];
 
-//function isKeyOf<T>() {
-    //return <U extends Record<K, toAutoImplementKeys<T>>, K extends string>(target: U, prop: K) => {}
-//}
+    public IShogun: WestWorld.toAutoImplement<IShogun> = [
+        IShogun, { specialAttack: true }];
+
+    public IShogun_Static: WestWorld.toAutoImplement<IShogun_Static> = [
+        IShogun, { TrainedUnder: true }];
+}
 
 class Interfaces4 extends WestWorld.IndexableAutoImplementKeys {
     public IWarrior = {
@@ -74,26 +75,27 @@ class Interfaces4 extends WestWorld.IndexableAutoImplementKeys {
     }
 }
 
+class Interfaces5 {
+    public static IWarrior = {
+        interface: IWarrior,
+        keys: <(keyof IWarrior)[]>['Style', 'attack']
+    };
 
-class Interfaces3 extends WestWorld.IndexableAutoImplementDefs {
-    public IWarrior: WestWorld.toAutoImplement<IWarrior> = [
-        IWarrior, { Style: true, attack: true, Someprop: true }];
-
-    public IShogun: WestWorld.toAutoImplement<IShogun> = [
-        IShogun, { specialAttack: true }];
-
-    public IShogun_Static: WestWorld.toAutoImplement<IShogun_Static> = [
-        IShogun, { TrainedUnder: true }];
+    public static IShogun: WestWorld.toAutoImplementKeys<IShogun> = {
+        interface: IShogun,
+        keys: ['specialAttack']
+    }
 }
 //-------------------------------------------------------------------------------------------------------
 
 
+//-------------------------------------------------------------------------------------------------------
 @WestWorld.usesAbstractImplementsOf(Interfaces, IShogun_Static)
 class AnyShogun {
     public SomeString: string;
 }
 
-@WestWorld.usesImplementsOf(Interfaces4, 'IShogun')
+@WestWorld.usesImplementsOf(Interfaces5, 'IShogun')
 class Ninja extends AnyShogun {
 
     public Name: string = 'John Doe';
@@ -115,6 +117,7 @@ class MiddleClassTest extends Ninja {
 class SpecificNinja extends MiddleClassTest {
     public static TrainedUnder: string = 'Master Eraqus';
 }
+//-------------------------------------------------------------------------------------------------------
 
 
 let t2 = process.hrtime(t1);

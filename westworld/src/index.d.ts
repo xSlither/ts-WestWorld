@@ -28,7 +28,6 @@ declare global {
             [key: string]: toAutoImplementKeys<any>;
         }
 
-        //type toAutoImplementAny = [Symbol, {}][];
         type toAutoImplementGeneric<T extends {}> = [Symbol, T];
 
         type toAutoImplement<T> = toAutoImplementGeneric<KeysEnum<T>>;
@@ -39,15 +38,13 @@ declare global {
         type toAutoImplementKeys<T extends Object> = { interface: Symbol, keys: (keyof T)[]}
         type toAutoImplementKeysPattern<T> = KeysMatchingIndexSignature<T, toAutoImplementKeys<any>>;
 
-        //type toAutoImplementAnyPattern<T> = KeysMatchingIndexSignature<T, [Symbol, {} | string[]]>;
-
-        declare class IndexableAutoImplementDefs implements IAutoImplementIndexable {
+        class IndexableAutoImplementDefs implements IAutoImplementIndexable {
             [key: string]: toAutoImplementGeneric<{}>;
-        };
+        }
 
-        declare class IndexableAutoImplementKeys implements IAutoImplementIndexableKeys {
+        class IndexableAutoImplementKeys implements IAutoImplementIndexableKeys {
             [key: string]: toAutoImplementKeys<any>;
-        };
+        }
 
         type IndexablePatternKey<T> =
             T extends IndexableAutoImplementDefs ? toAutoImplementPattern<T> :
@@ -61,7 +58,8 @@ declare global {
             <T extends IndexableAutoImplementDefs | IndexableAutoImplementKeys>(target: T, key: IndexablePatternKey<T>) => Object;
 
 
-        function staticImplements<T>(symbol: Symbol | T = undefined): <U extends T>(constructor: U) => U;
+        function staticImplements<T>(): <U extends T>(constructor: U) => U;
+        function staticImplements<T>(symbol: Symbol | T): <U extends T>(constructor: U) => U;
 
 
         const implementsOf: (instance: Object, implemented: Symbol) => boolean;
