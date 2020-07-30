@@ -249,7 +249,7 @@ const GetConstructorClassName = <T>(ctor: Constructor<T>): string => {
 
 const GetStaticMethods = <T>(ctor: Constructor<T>): string[] => {
     try {
-        return Array.from(ctor.toString().match(/(?<=static ).*.(?=\()|(?<=static async ).*.(?=\()/gm));
+        return Array.from(ctor.toString().match(/(?<=static )(?!async).*.(?=\()|(?<=static async ).*.(?=\()/gm));
     } catch { return null; }
 }
 

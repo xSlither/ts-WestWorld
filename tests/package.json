@@ -6,13 +6,14 @@
   "scripts": {
     "build": "powershell -ExecutionPolicy Bypass -File %TSC_DIR%",
     "build:ww": "cd ../westworld && npm run build && cd ../tests",
+    "build:wwp": "cd ../westworld && npm run build:npm && cd ../tests",
     "dev:test": "npm run build && SET \"NODE_ENV=dev\" && node ./dist/test.js",
-    "dev:testAll": "npm run build:ww && npm run dev:test"
+    "dev:testAll": "npm run build:ww && npm run dev:test",
+    "testp": "npm run build:wwp && npm run dev:test"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "reflect-metadata": "^0.1.13",
-    "ts-westworld": "^1.0.3"
+    "reflect-metadata": "^0.1.13"
   }
 }
