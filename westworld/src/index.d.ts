@@ -82,7 +82,7 @@ declare global {
 
         function usesImplementsOf
             <T, U extends KnownKeysMatching<T, IndexableTypeKeyOverload<T>> | (new () => T)>(target: (new () => T) | U, 
-            ...keys: IndexableTypeKeysArrayOverload<T, U>);
+            ...keys: IndexableTypeKeysArrayOverload<T, U>): <W extends new (...args: any[]) => {}>(constructor: W) => any;
         function usesImplementsOf<T extends (new () => IAutoImplement)>(listType: T, ...interfaces: Symbol[]):
             <W extends new (...args: any[]) => {}>(constructor: W) => any;
         function usesImplementsOf(...interfaces: toAutoImplementGeneric<{}>[]):
@@ -92,8 +92,8 @@ declare global {
 
 
         function usesAbstractImplementsOf
-            <T, U extends KnownKeysMatching<T, toAutoImplementGeneric<{}>> | (new () => T)>(target: (new () => T) | U, 
-            ...keys: IndexableKeysForSchema<T, U>[]): <W extends new (...args: any[]) => {}>(constructor: W) => any;
+            <T, U extends KnownKeysMatching<T, IndexableTypeKeyOverload<T>> | (new () => T)>(target: (new () => T) | U, 
+            ...keys: IndexableTypeKeysArrayOverload<T, U>): <W extends new (...args: any[]) => {}>(constructor: W) => any;
         function usesAbstractImplementsOf<T extends (new () => IAutoImplement)>(listType: T, ...interfaces: Symbol[]):
             <W extends new (...args: any[]) => {}>(constructor: W) => any;
         function usesAbstractImplementsOf(...interfaces: toAutoImplementGeneric<{}>[]):
