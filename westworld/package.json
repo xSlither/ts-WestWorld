@@ -1,7 +1,7 @@
 {
   "name": "ts-westworld",
-  "version": "1.0.4",
-  "description": "An interface reflection library for native TypeScript builds",
+  "version": "1.1.0",
+  "description": "An interface reflection library for native TypeScript Node.js builds",
   "main": "WestWorld.js",
   "types": "index.d.ts",
   "scripts": {

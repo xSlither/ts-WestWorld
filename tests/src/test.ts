@@ -91,7 +91,8 @@ class Interfaces5 {
 
 
 //-------------------------------------------------------------------------------------------------------
-@WestWorld.usesAbstractImplementsOf(Interfaces, IShogun_Static)
+//@WestWorld.usesAbstractImplementsOf(Interfaces, IShogun_Static)
+@WestWorld.usesAbstractImplementsOf(Interfaces3, 'IShogun_Static')
 class AnyShogun {
     public SomeString: string;
 }
@@ -134,10 +135,33 @@ interface A {
     Create(): B;
 } const A = Symbol.for('A');
 
+const D = Symbol.for('D');
+interface D {
+    AnotherProperty: string;
+    AnotherMethod(): void;
+}
+
 class InterfacesContainer {
     public static A: WestWorld.toAutoImplementKeys<A> = {
         interface: A,
         keys: ['Create', 'SomeProperty']
+    }
+    public static D: WestWorld.toAutoImplementKeys<D> = {
+        interface: D,
+        keys: ['AnotherProperty', 'AnotherMethod']
+    }
+}
+
+@WestWorld.usesAbstractImplementsOf(D)
+class E {}
+
+@WestWorld.usesImplementsOf(D)
+class F extends E {
+    public AnotherProperty: string = 'TEST';
+    //SomeOtherProperty: string;
+
+    public AnotherMethod(): void {
+        return;
     }
 }
 
@@ -178,6 +202,8 @@ let x = C.Create().then( (v) => {
     console.log(v.TestProperty);
 });
 
+let ff = new F();
+
 t2 = process.hrtime(t1);
 console.log('Constructor took ' + (((t2[0] * 1e3 )+ t2[1]) * 1e-6) + ' milliseconds');
 
@@ -188,3 +214,19 @@ console.log('Constructor took ' + (((t2[0] * 1e3 )+ t2[1]) * 1e-6) + ' milliseco
 //console.log(WestWorld.implementsOf(x, Symbol.for('IShogun')));
 
 //console.log(WestWorld.implementsFrom(con, x, 'IShogun'));
+
+interface Animal {
+    move(): void;
+}
+
+const Bovine = Symbol();
+interface Bovine extends Animal {
+    moo(): void;
+}
+
+class AnimalCon extends WestWorld.IndexableAutoImplementKeys {
+    public Bovine: WestWorld.toAutoImplementKeys<Bovine> = {
+        interface: Bovine,
+        keys: ['moo', 'move']
+    }
+}

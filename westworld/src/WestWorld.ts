@@ -105,9 +105,17 @@ interface IStaticImplementsSymbol {
 }
 
 
+const __implementsof_symbol_name = '__implementsof_symbol';
+
 interface IImplementsofSymbol {
     __implementsof_symbol: Symbol[];
+
 }
+
+const __preEvaluated_name = '__preEvaluated';
+const __preEvaluated = Symbol.for(__preEvaluated_name);
+
+const SYMBOL_IMPLEMENT_LINKS = new Map<any, Symbol[]>();
 
 //---------------------------------------------------------------------------------------------------------------
 
@@ -362,11 +370,17 @@ function CheckStaticImplementsOf(instance: Object, implemented: Symbol): boolean
 }
 
 
-function CheckForStaticKeys(target: Object, prototypeName: string, key: string): boolean {
+function GetStaticKeysFromTarget(target: Object, prototypeName: string): string[] {
     try {
-        const static_keys = (CheckStaticImplement(prototypeName)) ||
+        return (CheckStaticImplement(prototypeName)) ||
         ((<IStaticImplementsSymbol>(target)).__staticImplements ? 
             (<IStaticImplementsSymbol>(target)).__staticImplementsKeys : null);
+    } catch { return null; }
+}
+
+function CheckForStaticKeys(target: Object, prototypeName: string, key: string): boolean {
+    try {
+        const static_keys = GetStaticKeysFromTarget(target, prototypeName);
 
         if (static_keys) {
             let matches = linq.from(static_keys).count( (s) => {
@@ -431,6 +445,20 @@ type GenericIndexableAutoImplementDefs<T> = T extends IndexableAutoImplementDefs
 type GenericIndexableAutoImplementKeys<T> = T extends IndexableAutoImplementKeys ? T : never;
 
 
+function InitSymbolImplement(hash: string, symbols: Symbol[]) {
+    if (!SYMBOL_IMPLEMENT_LINKS.has(hash)) {
+		SYMBOL_IMPLEMENT_LINKS.set(hash, []);
+	}
+	SYMBOL_IMPLEMENT_LINKS.get(hash)!.push(...symbols);
+}
+
+function CheckSymbolImplement(hash: string): Symbol[] {
+    if (SYMBOL_IMPLEMENT_LINKS.has(hash)) {
+        return SYMBOL_IMPLEMENT_LINKS.get(hash);
+    } return null;
+}
+
+
 //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 function usesImplementsOf<T extends (new () => IAutoImplement)>(listType: T, ...interfaces: Symbol[]): <W extends new (...args: any[]) => {}>(constructor: W) => any;
 function usesImplementsOf(...interfaces: toAutoImplementGeneric<{}>[]): <W extends new (...args: any[]) => {}>(constructor: W) => any;
@@ -457,7 +485,7 @@ function usesImplementsOf<T>(a: _usesImplementsOf_overload_genericType<T> | (Sym
                 }
             }
 
-            let thisItem = new original();
+            let thisItem = new original(Symbol.for(__preEvaluated_name));
             for (let key in list) {
                 let xx: unknown = <unknown>(list[key]);
                 if (interfaces.includes((<IAutoImplement>xx).__autoImplement)) {
@@ -485,7 +513,11 @@ function usesImplementsOf<T>(a: _usesImplementsOf_overload_genericType<T> | (Sym
                     }
                 }
             }
+
         }
+
+        const hash = GetConstructorHash(original) + '*' + GetConstructorClassName(original);
+        InitSymbolImplement(hash, interfaces);
 
         let anon = class extends constructor implements IImplementsofSymbol {
             public __implementsof_symbol: Symbol[];
@@ -527,6 +559,8 @@ function usesAbstractImplementsOf<T>(a: _usesImplementsOf_overload_genericType<T
 
             constructor(...args: any[]) {
 
+                let declared = args[0] === __preEvaluated;
+
                 if (ctor_types === undefined) {
                     super();
                 } else { super(...args); }
@@ -534,7 +568,7 @@ function usesAbstractImplementsOf<T>(a: _usesImplementsOf_overload_genericType<T
                 this.__implementsof_symbol = safeAppend(this.__implementsof_symbol, interfaces);
 
                 const prototypeName: string = (<Object>Reflect.getPrototypeOf(this)).constructor.name;
-                if (prototypeName && prototypeName != originalPrototypeName) {
+                if (prototypeName && prototypeName != originalPrototypeName && listType !== undefined) {
                     let list = new ((<unknown>listType) as (new () => T))();
 
                     if (interfaces === undefined) {
@@ -552,15 +586,16 @@ function usesAbstractImplementsOf<T>(a: _usesImplementsOf_overload_genericType<T
 
                             for (let subKey in <any>xx) {
                                 if (xx[subKey]) {
-                                    if (thisItem[subKey] == undefined && subKey != __autoImplement_name) {
+                                    if (thisItem[subKey] === undefined && subKey !== __autoImplement_name) {
 
                                         if (CheckForStaticKeys(this, prototypeName, subKey)) { continue; }
                                         if (CheckPrototypeForStaticKey(this, subKey)) { continue; }
 
                                         if (this.__implementsof_symbol.includes((<IAutoImplement>xx).__autoImplement)) {
                                             if ((<Object>Reflect.getPrototypeOf(this)).constructor.toString().includes('extends ' + GetConstructorClassName(original))) {
-                                                //console.log('TEST1' + ' : ' + subKey);
-                                                continue;
+                                                if (declared) {
+                                                    continue;
+                                                }
                                             }
 
                                             //if ((<Object>Reflect.getPrototypeOf(this)).constructor.toString().includes('this.__implementsof_symbol =')) {
@@ -590,6 +625,19 @@ function usesAbstractImplementsOf<T>(a: _usesImplementsOf_overload_genericType<T
 
                         }
                     }
+
+                } else if (listType === undefined && interfaces !== undefined) {
+                    
+                    for (let i of interfaces) {
+                        if (CheckAllPrototypesForSymbolImplement(this, i)) {
+                            continue;
+                        } else {
+                            if (GetStaticKeysFromTarget(this, prototypeName)) { continue; }
+                        }
+
+                        throw new Error('Interface ' + i.toString() + ' is not implemented in class ' + 
+                        prototypeName + ' because symbol is unassociated');
+                    }
                 }
 
             }
@@ -615,6 +663,18 @@ function getProtoTypeChain(obj: Object): Object[] {
     return cs;
 }
 
+function CheckAllPrototypesForSymbolImplement(me: Object, symbol: Symbol): boolean {
+    let protos = getProtoTypeChain(me);
+    for (let proto of protos) {
+        let hash = GetConstructorHash(proto.constructor as Constructor) 
+            + '*' + GetConstructorClassName(proto.constructor as Constructor);
+        let symbols = CheckSymbolImplement(hash);
+        if (symbols && symbols.length > 0) {
+            if (symbols.includes(symbol)) { return true; }
+        }
+    } return false;
+}
+
 function CheckAllPrototypesForKey(me: Object, key: string): boolean {
     let protos = getProtoTypeChain(me);
     for (let proto of protos) {
@@ -623,9 +683,46 @@ function CheckAllPrototypesForKey(me: Object, key: string): boolean {
             let hasKey = linq.from(Object.getOwnPropertyNames(proto)).count( (_key: string) => {
                 return _key == key;
             }) > 0;
-            if (hasKey) { return true; }
+
+            if (hasKey) { 
+                return true; 
+
+            } else if (ctor.includes('this.' + key + ' =')) {
+                let _ctor = ExtractConstructorMethod(ctor);
+                if (_ctor && _ctor.length > 0) {
+                    if (_ctor.includes('this.' + key + ' =')) {
+                        return true;
+                    }
+                }
+            }
         }
-    } return false
+    } return false;
+}
+
+function ExtractConstructorMethod(ctor: string): string {
+    let ctor_pos = ctor.indexOf('constructor(');
+    if (ctor_pos > -1) {
+        const findNextChar = (c: string) => {
+            for (let i = ctor_pos; i < ctor.length; i++) {
+                if (ctor[i] === c) {
+                    return i;
+                }
+            } return -1;
+        };
+
+        let ctor_open_pos = findNextChar('{');
+
+        if (ctor_open_pos > -1) {
+            let bcount = 0;
+            for (let i = ctor_open_pos; i < ctor.length; i++) {
+                if (ctor[i] === '{') { bcount += 1; continue; }
+                if (ctor[i] === '}') { 
+                    if (bcount == 0) { return ctor.substring(ctor_open_pos, i); }
+                    bcount -= 1; continue;
+                }
+            }
+        }
+    } return '';
 }
 
 function CheckStackForStaticKey(me: Object, key: string): boolean {
@@ -737,7 +834,8 @@ function _usesImplementsOf_resolveOverload<T>(a: any, b: any): [_usesImplementsO
                     interfaces = b as Symbol[];
                 } else {
                     let _a = Object.keys(a).length < 1 ? new a() : a;
-                    let needsSchema = typeof b[0] == 'string';
+                    let props = Object.keys(_a);
+                    let needsSchema = typeof _a[props[0]]['keys'] !== 'function';
 
                     listType = !needsSchema ?
                         ImplementOfPatternFactory_FromIndex<GenericIndexableAutoImplementDefs<T>>(_a, ...(b as any[])) as _usesImplementsOf_overload_genericType<T> :
@@ -749,7 +847,8 @@ function _usesImplementsOf_resolveOverload<T>(a: any, b: any): [_usesImplementsO
                     interfaces = [b as Symbol];
                 } else {
                     let _a = Object.keys(a).length < 1 ? new a() : a;
-                    let needsSchema = typeof b == 'string';
+                    let props = Object.keys(_a);
+                    let needsSchema = typeof _a[props[0]]['keys'] !== 'function';
 
                     listType = !needsSchema ?
                         ImplementOfPatternFactory_FromIndex<GenericIndexableAutoImplementDefs<T>>(_a, b as any) as _usesImplementsOf_overload_genericType<T> :
